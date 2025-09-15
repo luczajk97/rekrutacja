@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: my-app
+  labels: { app: backend }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: backend }
+  template:
+    metadata:
+      labels: { app: backend }
+    spec:
+      containers:
+        - name: backend
+          image: my-backend:1.0 
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef: { name: backend-db }
+            - secretRef:    { name: backend-db-secret }
+          env:
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-db
+                  key: SPRING_POSTGRES_URL
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-db
+                  key: SPRING_POSTGRES_USERNAME
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backend-db-secret
+                  key: SPRING_POSTGRES_PASSWORD
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"

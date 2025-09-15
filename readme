@@ -1,0 +1,30 @@
+#prerequisites
+brew install minikube
+minikube start --driver=hyperkit
+minikube addons enable ingress
+#if we want to use mvnw we need to delete space char before END
+#we can use for example sed command:
+sed -i '' -e $'s/^[[:space:]]*END$/END/' mvnw
+# in other way we can just use specific maven version, without wrapper  :)
+cd backend  
+docker build -t my-backend:1.0 .
+cd /frontend 
+docker build -t my-frontend:1.0 .
+
+minikube image load my-backend:1.0
+minikube image load my-frontend:1.0
+
+#using manifests
+kubectl apply -f ./manifests/namespace.yml
+kubectl apply -f ./manifests/ingress.yml
+
+kubectl apply -f ./manifests/backend
+kubectl apply -f  ./manifests/frontend
+
+#test:
+kubectl run tmp --rm -it --image=busybox:1.28 -n my-app -- /bin/sh
+wget -qO- http://frontend
+wget -qO- http://backend:8080/api/users
+
+kubectl get ingress -n my-app
+#take external adress and try in browser
